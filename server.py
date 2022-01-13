@@ -1,8 +1,10 @@
 import json
 import requests
+import sqlite3
 from flask import Flask
 from flask import request
 from flask import send_from_directory
+from dbcommands import *
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 
@@ -10,8 +12,16 @@ keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
 IMAGE_FOLDER = '/home/pi/Desktop/LitterBox/images'
 
+conn = sqlite3.connect('./db/test.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+
+clean_messages = ['OK don\'t remember asking', 'Cool.', 'Thank you.', 'Thanks!', 'Wow. Needed that.', 'Yikes. Do better next time']
+
 app = Flask(__name__)
 app.config
+
+def db_box_cleaned():
+    insertQuery = 'INSERT INTO EVENTS(type, count, time) VALUES (?,?)'
+    conn.execute(insertQuery, (2, -1, datetime.datetime.now()))
 
 @app.route('/uploads/<filename>', methods=['GET'])
 def uploaded_file(filename):
@@ -21,9 +31,20 @@ def uploaded_file(filename):
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
+    count = insert_clean_event(conn)
+    if(count > len(clean_messages) - 1): count = len(clean_messages) - 1
     resp = MessagingResponse()
-    resp.message("The Robots are coming! Head for the hills!")
+    resp.message(clean_messagesp[count])
     return str(resp)
 
 if __name__ == "__main__":
     app.run(host='192.168.1.64', port=5000, debug=False)
+
+'''
+db structure
+Each row is an "event"
+ID, type, count, timestamp
+type 1 is detect litter box use
+type 2 is clean litter box
+count is number of litter box usages between cleaning
+'''
