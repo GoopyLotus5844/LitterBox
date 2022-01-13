@@ -1,3 +1,5 @@
 images/
 __pycache__/
+*.pyc
 venv/
+twilio_config.json
