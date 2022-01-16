@@ -101,7 +101,7 @@ def send_text(count):
 try:
     trigger_count = 0
     start_time = -1
-    last_event_time = -1
+    last_event_time = get_recent_box_use(conn)[2].timestamp()
     msg_detect_time = -1
 
     test_dist_trigger = False
@@ -112,8 +112,7 @@ try:
         print(test_dist_trigger, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
         
         #If there is a noteworthy measurement and the program is not paused due to recent event
-        if test_dist_trigger and (last_event_time == -1 or now - last_event_time > EVENT_SEP):
-            
+        if test_dist_trigger and now - last_event_time > EVENT_SEP:   
             if start_time == -1:
                 #If the event window is not active
                 start_time = now
@@ -134,17 +133,14 @@ try:
             start_time = -1
             trigger_count = 0
             last_event_time = now
-
-            db_event = get_recent_event(conn)
-            count = insert_litterbox_event(conn, db_event)
-
+            count = insert_box_use_event(conn)
             if count >= EVENT_COUNT:
                 msg_detect_time = now
                 
         if msg_detect_time != -1 and now - msg_detect_time > PRIVACY_DELAY:
             #final step - sending text after privacy delay
             msg_detect_time = -1
-            send_text(get_recent_event(conn)[2] - EVENT_COUNT)
+            send_text(get_recent_box_use(conn)[1] - EVENT_COUNT)
         
         #.sleep(1)
         test_input = input()
@@ -154,5 +150,3 @@ try:
 except KeyboardInterrupt:
     print("Measurement stopped by User")
     #GPIO.cleanup()
-
-send_text()

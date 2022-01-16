@@ -19,9 +19,26 @@ clean_messages = ['OK don\'t remember asking', 'Cool.', 'Thank you.', 'Thanks!',
 app = Flask(__name__)
 app.config
 
-def db_box_cleaned():
-    insertQuery = 'INSERT INTO EVENTS(type, count, time) VALUES (?,?)'
-    conn.execute(insertQuery, (2, -1, datetime.datetime.now()))
+def box_cleaned():
+    count = insert_clean_event(conn)
+    if(count > len(clean_messages) - 1): count = len(clean_messages) - 1
+    resp = MessagingResponse()
+    resp.message(clean_messages[count])
+    return str(resp)
+
+def stats():
+    '''
+    current uses since last clean
+    average uses between cleanings
+    average uses per day
+    '''
+
+    uses_since_clean = get_recent_box_use(conn)[1]
+    avg_per_clean = get_avg_uses_before_clean(conn, 100)
+    avg_per_day = get_avg_daily_uses(conn, 100)
+    print(uses_since_clean, avg_per_clean, avg_per_day)
+
+    return 0
 
 @app.route('/uploads/<filename>', methods=['GET'])
 def uploaded_file(filename):
@@ -46,7 +63,8 @@ def sms_reply():
 
 if __name__ == "__main__":
     #app.run(host='192.168.1.64', port=5000, debug=False)
-    print(test_sms_reply())
+    #print(test_sms_reply())
+    stats()
 
 '''
 db structure

@@ -1,21 +1,58 @@
 import datetime
 
-def get_recent_event(conn):
-    select_query = 'SELECT * FROM EVENTS ORDER BY ID DESC LIMIT 1'
+def get_recent_box_use(conn):
+    select_query = 'SELECT * FROM BOX_USE ORDER BY ID DESC LIMIT 1'
     return conn.execute(select_query).fetchone()
 
+def get_recent_clean(conn):
+    select_query = 'SELECT * FROM CLEAN ORDER BY ID DESC LIMIT 1'
+    return conn.execute(select_query).fetchone()
+
+def get_avg_uses_before_clean(conn, sample):
+    select_query = f'SELECT * FROM CLEAN ORDER BY ID DESC LIMIT {sample}'
+    result = conn.execute(select_query)
+
+    total_uses = 0
+    total_events = 0
+    for row in result:
+        total_events += 1
+        total_uses += row[1]
+
+    return total_uses / total_events
+
+def get_avg_daily_uses(conn, sample):
+    select_query = f'SELECT * FROM BOX_USE ORDER BY ID DESC LIMIT {sample}'
+    result = conn.execute(select_query)
+
+    total_days = 0
+    day = 0
+    total_uses = 0
+    for row in result:
+        if row[1] == 0: continue
+        if row[2].day != day:
+            total_days += 1
+            day = row[2].day
+        total_uses += 1
+    return total_uses / total_days
+    
 def insert_clean_event(conn):
-    count = get_recent_event(conn)[2]
-    insert_query = 'INSERT INTO EVENTS(type, count, time) VALUES (?,?,?)'
-    conn.execute(insert_query, (2, 0, datetime.datetime.now()))
+    count = get_recent_box_use(conn)[1]
+    now = datetime.datetime.now()
+    insert_query = 'INSERT INTO CLEAN(count, time) VALUES (?,?)'
+
+    conn.execute(insert_query, (count, now))
+
+    insert_query = 'INSERT INTO BOX_USE(count, time) VALUES (?,?)'
+    conn.execute(insert_query, (0, now))
+
     conn.commit()
     return count
     
-def insert_litterbox_event(conn, recent=None):
-    if recent is None: recent = get_recent_event(conn)
-    count = recent[2] + 1
-    insert_query = 'INSERT INTO EVENTS(type, count, time) VALUES (?,?,?)'
-    conn.execute(insert_query, (1, count, datetime.datetime.now()))
+def insert_box_use_event(conn):
+    recent = get_recent_box_use(conn)
+    count = recent[1] + 1
+    insert_query = 'INSERT INTO BOX_USE(count, time) VALUES (?,?)'
+    conn.execute(insert_query, (count, datetime.datetime.now()))
     conn.commit()
     return count
     
