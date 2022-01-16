@@ -89,7 +89,6 @@ def send_text(count):
     camera.capture("./images/" + dt_string + ".png")
     camera.close()
     
-    print('ngrok URL:', get_ngrok_url())
     message = client.messages.create(
         body=messages[count],
         media_url=['http://76.206.246.29:5843' + '/uploads/' + dt_string + '.png'],
