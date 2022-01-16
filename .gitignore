@@ -4,3 +4,4 @@ __pycache__/
 venv/
 twilio_config.json
 test.db
+litterbox.db

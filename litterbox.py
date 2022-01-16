@@ -1,17 +1,26 @@
-import RPi.GPIO as GPIO
-from picamera import PiCamera
-from datetime import datetime
+#import RPi.GPIO as GPIO
+#from picamera import PiCamera
+from datetime import datetime as date_util
 from dbcommands import *
 import time
 import json
 import requests
 from twilio.rest import Client
+import sqlite3
 
 keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
 IMAGE_FOLDER = '/home/pi/Desktop/LitterBox/images'
 
-GPIO.setmode(GPIO.BCM)
+conn = sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+
+messages = ['Please clean the litter box',
+'Clean ur litter box nerd!',
+'Hurry up and clean the litter box please!',
+'Litter box maximum threat level reached',
+'Litter box maximum threat level exceeded']
+
+#GPIO.setmode(GPIO.BCM)
  
 GPIO_TRIGGER = 18
 GPIO_ECHO = 24
@@ -29,17 +38,18 @@ EVENT_LENGTH = 45
 EVENT_THRESH = 4
 
 #after an event is detected, ignore all measurements for this many seconds before considering more events
-EVENT_SEP = 30
+EVENT_SEP = 10
 
 #number of events until text message is sent
 EVENT_COUNT = 3
 
 #wait this long before sending the text messsage to meet cat privacy standards
-PRIVACY_DELAY = 90
+PRIVACY_DELAY = 5
 
-GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
-GPIO.setup(GPIO_ECHO, GPIO.IN)
+#GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+#GPIO.setup(GPIO_ECHO, GPIO.IN)
 
+#used for old ngrok setup to get the public URL of the image server
 def get_ngrok_url():
     url = "http://localhost:4041/api/tunnels/"
     res = requests.get(url)
@@ -48,7 +58,6 @@ def get_ngrok_url():
     for i in res_json["tunnels"]:
         if i['name'] == 'command_line (http)':
             return i['public_url']
-            break
 
 def distance():
     GPIO.output(GPIO_TRIGGER, True)
@@ -68,8 +77,13 @@ def distance():
  
     return distance
 
-def send_text():
-    now = datetime.now()
+def send_text(count):
+    if count > len(messages) - 1: count = len(messages) - 1
+    now = date_util.now()
+
+    print(messages[count])
+
+    '''
     dt_string = now.strftime("%d-%m-%Y-H:%M:%S")
     camera = PiCamera()
     camera.capture("./images/" + dt_string + ".png")
@@ -77,27 +91,28 @@ def send_text():
     
     print('ngrok URL:', get_ngrok_url())
     message = client.messages.create(
-        body='Clean ur litter box nerd',
+        body=messages[count],
         media_url=['http://76.206.246.29:5843' + '/uploads/' + dt_string + '.png'],
         from_=keys['twilio_phone'],
         to=keys['send_phone']
     )
+    '''
     
 try:
     trigger_count = 0
     start_time = -1
     last_event_time = -1
-    
-    event_count = 0
-    msg_detect_time = -1;
+    msg_detect_time = -1
+
+    test_dist_trigger = False
     
     while True:
-        dist = distance()
+        #dist = distance()
         now = time.time()
-        print(dist, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'eventcount', event_count, 'msgtime', msg_detect_time, 'now', now)
+        print(test_dist_trigger, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
         
         #If there is a noteworthy measurement and the program is not paused due to recent event
-        if dist <= DISTANCE_THRESH and now - last_event_time > EVENT_SEP:
+        if test_dist_trigger and (last_event_time == -1 or now - last_event_time > EVENT_SEP):
             
             if start_time == -1:
                 #If the event window is not active
@@ -115,26 +130,29 @@ try:
                     trigger_count = 1
                     
         if trigger_count == EVENT_THRESH:
-            #If required trigger count reached, reset event window, start pause counter, call event
+            #If required trigger count reached, resent event window and add event to db
             start_time = -1
             trigger_count = 0
             last_event_time = now
-            event_count += 1
-            
-            if event_count == EVENT_COUNT:
-                event_count = 0
+
+            db_event = get_recent_event(conn)
+            count = insert_litterbox_event(conn, db_event)
+
+            if count >= EVENT_COUNT:
                 msg_detect_time = now
                 
         if msg_detect_time != -1 and now - msg_detect_time > PRIVACY_DELAY:
             #final step - sending text after privacy delay
             msg_detect_time = -1
-            send_text()
+            send_text(get_recent_event(conn)[2] - EVENT_COUNT)
         
         #.sleep(1)
-        input()
+        test_input = input()
+        if test_input == '1': test_dist_trigger = True
+        else: test_dist_trigger = False
 
 except KeyboardInterrupt:
     print("Measurement stopped by User")
-    GPIO.cleanup()
+    #GPIO.cleanup()
 
 send_text()

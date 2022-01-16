@@ -12,9 +12,9 @@ keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
 IMAGE_FOLDER = '/home/pi/Desktop/LitterBox/images'
 
-conn = sqlite3.connect('./db/test.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+conn = sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 
-clean_messages = ['OK don\'t remember asking', 'Cool.', 'Thank you.', 'Thanks!', 'Wow. Needed that.', 'Yikes. Do better next time']
+clean_messages = ['OK don\'t remember asking', 'Cool.', 'Thank you.', 'Thanks!', 'Wow. Needed that.', 'Yikes. Do better next time', 'Thanks, you\'re a horrible pet owner', 'What is wrong with you?']
 
 app = Flask(__name__)
 app.config
@@ -29,16 +29,24 @@ def uploaded_file(filename):
     return send_from_directory(IMAGE_FOLDER,
                                filename)
 
+def test_sms_reply():
+    count = insert_clean_event(conn)
+    if(count > len(clean_messages) - 1): count = len(clean_messages) - 1
+    #resp = MessagingResponse()
+    #resp.message(clean_messages[count])
+    return str(clean_messages[count])
+
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
     count = insert_clean_event(conn)
     if(count > len(clean_messages) - 1): count = len(clean_messages) - 1
     resp = MessagingResponse()
-    resp.message(clean_messagesp[count])
+    resp.message(clean_messages[count])
     return str(resp)
 
 if __name__ == "__main__":
-    app.run(host='192.168.1.64', port=5000, debug=False)
+    #app.run(host='192.168.1.64', port=5000, debug=False)
+    print(test_sms_reply())
 
 '''
 db structure
