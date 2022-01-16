@@ -12,25 +12,30 @@ keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
 IMAGE_FOLDER = '/home/pi/Desktop/LitterBox/images'
 
-conn = sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-
 clean_messages = ['OK don\'t remember asking', 'Cool.', 'Thank you.', 'Thanks!', 'Wow. Needed that.', 'Yikes. Do better next time', 'Thanks, you\'re a horrible pet owner', 'What is wrong with you?']
 
 app = Flask(__name__)
 app.config
 
+def connect_db():
+    return sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+
 def box_cleaned():
+    conn = connect_db()
     count = insert_clean_event(conn)
+    conn.close()
     if(count > len(clean_messages) - 1): count = len(clean_messages) - 1
     resp = MessagingResponse()
     resp.message(clean_messages[count])
     return str(resp)
 
 def stats():
+    conn = connect_db()
     uses_since_clean = get_recent_box_use(conn)[1]
     avg_per_clean = round(get_avg_uses_before_clean(conn, 100), 2)
     avg_per_day = round(get_avg_daily_uses(conn, 100), 2)
-    
+    conn.close()
+
     resp = MessagingResponse()
     resp.message('Uses since cleaned: ' + str(uses_since_clean) + "\n" +
         'Avg uses before cleaning: ' + str(avg_per_clean) + "\n" +
