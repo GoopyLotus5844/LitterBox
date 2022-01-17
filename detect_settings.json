@@ -1,0 +1,20 @@
+{
+    "test": {
+        "poll_delay": 1,
+        "distance_thresh": 20,
+        "event_length": 45,
+        "event_thresh": 4,
+        "event_sep": 10,
+        "event_count": 3,
+        "privacy_delay": 5
+    },
+    "normal": {
+        "poll_delay": 1,
+        "distance_thresh": 20,
+        "event_length": 45,
+        "event_thresh": 4,
+        "event_sep": 10,
+        "event_count": 3,
+        "privacy_delay": 5
+    }
+}

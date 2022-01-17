@@ -1,3 +1,5 @@
+test_mode = True
+
 import json
 import requests
 import sqlite3
@@ -12,7 +14,14 @@ keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
 IMAGE_FOLDER = '/home/pi/Desktop/LitterBox/images'
 
-clean_messages = ['OK don\'t remember asking', 'Cool.', 'Thank you.', 'Thanks!', 'Wow. Needed that.', 'Yikes. Do better next time', 'Thanks, you\'re a horrible pet owner', 'What is wrong with you?']
+clean_messages = ['OK don\'t remember asking', 
+    'Cool.', 
+    'Thank you.', 
+    'Thanks!', 
+    'Wow. Needed that.', 
+    'Yikes. Do better next time', 
+    'Thanks, you\'re a horrible pet owner', 
+    'What is wrong with you?']
 
 app = Flask(__name__)
 app.config
@@ -44,7 +53,6 @@ def stats():
 
 @app.route('/uploads/<filename>', methods=['GET'])
 def uploaded_file(filename):
-    print(filename)
     return send_from_directory(IMAGE_FOLDER,
                                filename)
 
@@ -55,15 +63,7 @@ def sms_reply():
     elif 'ok' in body or 'clean' in body: return box_cleaned()
 
 if __name__ == "__main__":
-    #app.run(host='192.168.1.64', port=5000, debug=False)
-    #print(test_sms_reply())
-    print(sms_reply())
-
-'''
-db structure
-Each row is an "event"
-ID, type, count, timestamp
-type 1 is detect litter box use
-type 2 is clean litter box
-count is number of litter box usages between cleaning
-'''
+    if test_mode:
+        print(stats())
+    else:
+        app.run(host='192.168.1.64', port=5000, debug=False)

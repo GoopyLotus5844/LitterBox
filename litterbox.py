@@ -1,5 +1,5 @@
-#import RPi.GPIO as GPIO
-#from picamera import PiCamera
+test_mode = True
+
 from datetime import datetime as date_util
 from dbcommands import *
 import time
@@ -7,57 +7,32 @@ import json
 import requests
 from twilio.rest import Client
 import sqlite3
+if not test_mode:
+    import RPi.GPIO as GPIO
+    from picamera import PiCamera
 
 keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
+
 IMAGE_FOLDER = '/home/pi/Desktop/LitterBox/images'
 
 conn = sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 
-messages = ['Please clean the litter box',
-'Clean ur litter box nerd!',
-'Hurry up and clean the litter box please!',
-'Litter box maximum threat level reached',
-'Litter box maximum threat level exceeded']
+settings = json.load(open('detect_settings.json'))['test' if test_mode else 'normal']
 
-#GPIO.setmode(GPIO.BCM)
+messages = ['Please clean the litter box',
+    'Clean ur litter box nerd!',
+    'Hurry up and clean the litter box please!',
+    'Litter box maximum threat level reached',
+    'Litter box maximum threat level exceeded']
  
 GPIO_TRIGGER = 18
 GPIO_ECHO = 24
 
-#Tick speed
-POLL_DELAY = 1
-
-#distance measurements less than this length are considered in determining events
-DISTANCE_THRESH = 50
-
-#must measure a distance less than DISTANCE thresh EVENT_THRESH times within this time window
-EVENT_LENGTH = 45
-
-#must measure a distance less than DISTANCE_THRESH this many times within EVENT_LENGTH
-EVENT_THRESH = 4
-
-#after an event is detected, ignore all measurements for this many seconds before considering more events
-EVENT_SEP = 10
-
-#number of events until text message is sent
-EVENT_COUNT = 3
-
-#wait this long before sending the text messsage to meet cat privacy standards
-PRIVACY_DELAY = 5
-
-#GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
-#GPIO.setup(GPIO_ECHO, GPIO.IN)
-
-#used for old ngrok setup to get the public URL of the image server
-def get_ngrok_url():
-    url = "http://localhost:4041/api/tunnels/"
-    res = requests.get(url)
-    res_unicode = res.content.decode("utf-8")
-    res_json = json.loads(res_unicode)
-    for i in res_json["tunnels"]:
-        if i['name'] == 'command_line (http)':
-            return i['public_url']
+def setup_GPIO():
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+    GPIO.setup(GPIO_ECHO, GPIO.IN)
 
 def distance():
     GPIO.output(GPIO_TRIGGER, True)
@@ -74,30 +49,28 @@ def distance():
  
     TimeElapsed = StopTime - StartTime
     distance = (TimeElapsed * 34300) / 2
- 
     return distance
 
 def send_text(count):
     if count > len(messages) - 1: count = len(messages) - 1
     now = date_util.now()
-
     print(messages[count])
 
-    '''
-    dt_string = now.strftime("%d-%m-%Y-H:%M:%S")
-    camera = PiCamera()
-    camera.capture("./images/" + dt_string + ".png")
-    camera.close()
-    
-    message = client.messages.create(
-        body=messages[count],
-        media_url=['http://76.206.246.29:5843' + '/uploads/' + dt_string + '.png'],
-        from_=keys['twilio_phone'],
-        to=keys['send_phone']
-    )
-    '''
+    if not test_mode:
+        dt_string = now.strftime("%d-%m-%Y-H:%M:%S")
+        camera = PiCamera()
+        camera.capture("./images/" + dt_string + ".png")
+        camera.close()
+        
+        message = client.messages.create(
+            body=messages[count],
+            media_url=['http://76.206.246.29:5843' + '/uploads/' + dt_string + '.png'],
+            from_=keys['twilio_phone'],
+            to=keys['send_phone']
+        )
     
 try:
+    if not test_mode: setup_GPIO()
     trigger_count = 0
     start_time = -1
     last_event_time = get_recent_box_use(conn)[2].timestamp()
@@ -111,7 +84,7 @@ try:
         print(test_dist_trigger, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
         
         #If there is a noteworthy measurement and the program is not paused due to recent event
-        if test_dist_trigger and now - last_event_time > EVENT_SEP:   
+        if test_dist_trigger and now - last_event_time > settings['event_sep']:   
             if start_time == -1:
                 #If the event window is not active
                 start_time = now
@@ -119,7 +92,7 @@ try:
             else:
                 #If the event window is active
                 elapsed = now - start_time
-                if elapsed < EVENT_LENGTH:
+                if elapsed < settings['event_length']:
                     #This measurement counts for this event window
                     trigger_count += 1
                 else:
@@ -127,19 +100,19 @@ try:
                     start_time = now
                     trigger_count = 1
                     
-        if trigger_count == EVENT_THRESH:
+        if trigger_count == settings['event_thresh']:
             #If required trigger count reached, resent event window and add event to db
             start_time = -1
             trigger_count = 0
             last_event_time = now
             count = insert_box_use_event(conn)
-            if count >= EVENT_COUNT:
+            if count >= settings['event_count']:
                 msg_detect_time = now
                 
-        if msg_detect_time != -1 and now - msg_detect_time > PRIVACY_DELAY:
+        if msg_detect_time != -1 and now - msg_detect_time > settings['privacy_delay']:
             #final step - sending text after privacy delay
             msg_detect_time = -1
-            send_text(get_recent_box_use(conn)[1] - EVENT_COUNT)
+            send_text(get_recent_box_use(conn)[1] - settings['event_count'])
         
         #.sleep(1)
         test_input = input()
@@ -148,4 +121,4 @@ try:
 
 except KeyboardInterrupt:
     print("Measurement stopped by User")
-    #GPIO.cleanup()
+    if not test_mode: GPIO.cleanup()
