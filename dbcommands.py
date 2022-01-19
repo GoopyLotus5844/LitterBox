@@ -18,6 +18,7 @@ def get_avg_uses_before_clean(conn, sample):
         total_events += 1
         total_uses += row[1]
 
+    if total_events == 0: return 0
     return total_uses / total_events
 
 def get_avg_daily_uses(conn, sample):
@@ -33,6 +34,8 @@ def get_avg_daily_uses(conn, sample):
             total_days += 1
             day = row[2].day
         total_uses += 1
+
+    if total_days == 0: return total_uses
     return total_uses / total_days
     
 def insert_clean_event(conn):

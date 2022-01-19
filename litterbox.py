@@ -79,12 +79,18 @@ try:
     test_dist_trigger = False
     
     while True:
-        #dist = distance()
         now = time.time()
-        print(test_dist_trigger, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
+        
+        if not test_mode:
+            dist = distance()
+            print(dist, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
+            triggered = dist <= settings['distance_thresh']
+        else: 
+            print(test_dist_trigger, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
+            triggered = test_dist_trigger
         
         #If there is a noteworthy measurement and the program is not paused due to recent event
-        if test_dist_trigger and now - last_event_time > settings['event_sep']:   
+        if triggered and now - last_event_time > settings['event_sep']:   
             if start_time == -1:
                 #If the event window is not active
                 start_time = now
@@ -114,10 +120,12 @@ try:
             msg_detect_time = -1
             send_text(get_recent_box_use(conn)[1] - settings['event_count'])
         
-        #.sleep(1)
-        test_input = input()
-        if test_input == '1': test_dist_trigger = True
-        else: test_dist_trigger = False
+        if not test_mode:
+            time.sleep(1)
+        else:
+            test_input = input()
+            if test_input == '1': test_dist_trigger = True
+            else: test_dist_trigger = False
 
 except KeyboardInterrupt:
     print("Measurement stopped by User")

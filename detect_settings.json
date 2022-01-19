@@ -10,11 +10,11 @@
     },
     "normal": {
         "poll_delay": 1,
-        "distance_thresh": 20,
+        "distance_thresh": 50,
         "event_length": 45,
-        "event_thresh": 4,
-        "event_sep": 10,
+        "event_thresh": 3,
+        "event_sep": 600,
         "event_count": 3,
-        "privacy_delay": 5
+        "privacy_delay": 120
     }
 }
