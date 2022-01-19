@@ -1,14 +1,18 @@
-test_mode = True
+test_mode = False
 
 import json
 import requests
 import sqlite3
 from flask import Flask
+import time
+import logging
 from flask import request
 from flask import send_from_directory
 from dbcommands import *
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
+
+logging.basicConfig(filename='sms_server.log', encoding='utf-8', level=logging.INFO)
 
 keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
@@ -33,12 +37,14 @@ def box_cleaned():
     conn = connect_db()
     count = insert_clean_event(conn)
     conn.close()
+    logging.info('Box cleaned with %d uses', count)
     if(count > len(clean_messages) - 1): count = len(clean_messages) - 1
     resp = MessagingResponse()
     resp.message(clean_messages[count])
     return str(resp)
 
 def stats():
+    logging.info('Fetching stats')
     conn = connect_db()
     uses_since_clean = get_recent_box_use(conn)[1]
     avg_per_clean = round(get_avg_uses_before_clean(conn, 100), 2)
@@ -58,6 +64,7 @@ def uploaded_file(filename):
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
+    logging.info('SMS recieved at time %d', time.time())
     body = request.values.get('Body', None)
     if 'stat' in body: return stats()
     elif 'ok' in body or 'clean' in body: return box_cleaned()

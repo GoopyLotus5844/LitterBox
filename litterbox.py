@@ -1,7 +1,8 @@
-test_mode = True
+test_mode = False
 
 from datetime import datetime as date_util
 from dbcommands import *
+import logging
 import time
 import json
 import requests
@@ -10,6 +11,8 @@ import sqlite3
 if not test_mode:
     import RPi.GPIO as GPIO
     from picamera import PiCamera
+
+logging.basicConfig(filename='litterbox.log', encoding='utf-8', level=logging.INFO)
 
 keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
@@ -54,7 +57,6 @@ def distance():
 def send_text(count):
     if count > len(messages) - 1: count = len(messages) - 1
     now = date_util.now()
-    print(messages[count])
 
     if not test_mode:
         dt_string = now.strftime("%d-%m-%Y-H:%M:%S")
@@ -83,14 +85,12 @@ try:
         
         if not test_mode:
             dist = distance()
-            print(dist, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
             triggered = dist <= settings['distance_thresh']
         else: 
-            print(test_dist_trigger, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
             triggered = test_dist_trigger
         
         #If there is a noteworthy measurement and the program is not paused due to recent event
-        if triggered and now - last_event_time > settings['event_sep']:   
+        if triggered and now - last_event_time > settings['event_sep']:
             if start_time == -1:
                 #If the event window is not active
                 start_time = now
@@ -103,8 +103,10 @@ try:
                     trigger_count += 1
                 else:
                     #The last active event window is over, so start over with 1 trigger count
+                    logging.info('New event window started')
                     start_time = now
                     trigger_count = 1
+            if not test_mode: logging.info('TRIGGER dist: %.3f, trigcount: %d, time: %d', dist, trigger_count, now)
                     
         if trigger_count == settings['event_thresh']:
             #If required trigger count reached, resent event window and add event to db
@@ -114,11 +116,14 @@ try:
             count = insert_box_use_event(conn)
             if count >= settings['event_count']:
                 msg_detect_time = now
+                logging.info('Message scheduled for %d', msg_detect_time + settings['privacy_delay'])
                 
         if msg_detect_time != -1 and now - msg_detect_time > settings['privacy_delay']:
             #final step - sending text after privacy delay
             msg_detect_time = -1
-            send_text(get_recent_box_use(conn)[1] - settings['event_count'])
+            count = get_recent_box_use(conn)[1] - settings['event_count']
+            logging.info('Sending message for severity %d', count)
+            send_text(count)
         
         if not test_mode:
             time.sleep(1)
