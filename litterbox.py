@@ -106,7 +106,9 @@ try:
                     logging.info('New event window started')
                     start_time = now
                     trigger_count = 1
-            if not test_mode: logging.info('TRIGGER dist: %.3f, trigcount: %d, time: %d', dist, trigger_count, now)
+            if not test_mode: 
+                logging.info('TRIGGER dist: %.3f, trigcount: %d, time: %s', dist, trigger_count, 
+                    date_util.fromtimestamp(now).strftime('%Y-%m-%d %H:%M:%S'))
                     
         if trigger_count == settings['event_thresh']:
             #If required trigger count reached, resent event window and add event to db
@@ -116,7 +118,8 @@ try:
             count = insert_box_use_event(conn)
             if count >= settings['event_count']:
                 msg_detect_time = now
-                logging.info('Message scheduled for %d', msg_detect_time + settings['privacy_delay'])
+                logging.info('Message scheduled for %d', 
+                    date_util.fromtimestamp(msg_detect_time + settings['privacy_delay']).strftime('%Y-%m-%d %H:%M:%S'))
                 
         if msg_detect_time != -1 and now - msg_detect_time > settings['privacy_delay']:
             #final step - sending text after privacy delay

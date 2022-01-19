@@ -1,10 +1,11 @@
-test_mode = True
+test_mode = False
 
 import json
 import requests
 import sqlite3
 from flask import Flask
 import time
+from datetime import datetime as date_util
 import logging
 from flask import request
 from flask import send_from_directory
@@ -64,7 +65,7 @@ def uploaded_file(filename):
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
-    logging.info('SMS recieved at time %d', time.time())
+    logging.info('SMS recieved at time %d', date_util.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
     body = request.values.get('Body', None)
     if 'stat' in body: return stats()
     elif 'ok' in body or 'clean' in body: return box_cleaned()
