@@ -5,3 +5,5 @@ venv/
 twilio_config.json
 test.db
 litterbox.db
+sms_server.log
+litterbox.log

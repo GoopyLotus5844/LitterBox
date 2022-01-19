@@ -12,7 +12,7 @@ if not test_mode:
     import RPi.GPIO as GPIO
     from picamera import PiCamera
 
-logging.basicConfig(filename='litterbox.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(filename='litterbox.log', level=logging.INFO)
 
 keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])

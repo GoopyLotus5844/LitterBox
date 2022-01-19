@@ -1,4 +1,4 @@
-test_mode = False
+test_mode = True
 
 import json
 import requests
@@ -12,7 +12,7 @@ from dbcommands import *
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 
-logging.basicConfig(filename='sms_server.log', encoding='utf-8', level=logging.INFO)
+logging.basicConfig(filename='sms_server.log', level=logging.INFO)
 
 keys = json.load(open('twilio_config.json'))
 client = Client(keys['account_sid'], keys['auth_token'])
