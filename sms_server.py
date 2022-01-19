@@ -65,7 +65,7 @@ def uploaded_file(filename):
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
-    logging.info('SMS recieved at time %d', date_util.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+    logging.info('SMS recieved at time %s', date_util.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
     body = request.values.get('Body', None)
     if 'stat' in body: return stats()
     elif 'ok' in body or 'clean' in body: return box_cleaned()
