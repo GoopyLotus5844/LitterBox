@@ -1,4 +1,4 @@
-test_mode = True
+test_mode = False
 
 import json
 import requests

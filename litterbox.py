@@ -1,4 +1,4 @@
-test_mode = True
+test_mode = False
 
 from datetime import datetime as date_util
 from dbcommands import *
