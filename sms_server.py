@@ -66,12 +66,12 @@ def uploaded_file(filename):
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
     logging.info('SMS recieved at time %s', date_util.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
-    body = request.values.get('Body', None)
+    body = request.values.get('Body', None).lower()
     if 'stat' in body: return stats()
     elif 'ok' in body or 'clean' in body: return box_cleaned()
 
 if __name__ == "__main__":
     if test_mode:
-        box_cleaned()
+        print(stats())
     else:
         app.run(host='192.168.1.64', port=5000, debug=False)

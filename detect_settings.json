@@ -17,6 +17,6 @@
         "event_sep": 600,
         "event_count": 3,
         "privacy_delay": 120,
-        "clean_pause": 60
+        "clean_pause": 300
     }
 }
