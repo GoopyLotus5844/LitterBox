@@ -6,7 +6,8 @@
         "event_thresh": 4,
         "event_sep": 10,
         "event_count": 3,
-        "privacy_delay": 5
+        "privacy_delay": 5,
+        "clean_pause": 60
     },
     "normal": {
         "poll_delay": 1,
@@ -15,6 +16,7 @@
         "event_thresh": 3,
         "event_sep": 600,
         "event_count": 3,
-        "privacy_delay": 120
+        "privacy_delay": 120,
+        "clean_pause": 60
     }
 }

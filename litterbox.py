@@ -1,4 +1,4 @@
-test_mode = False
+test_mode = True
 
 from datetime import datetime as date_util
 from dbcommands import *
@@ -88,6 +88,7 @@ try:
             triggered = dist <= settings['distance_thresh']
         else: 
             triggered = test_dist_trigger
+            print(test_dist_trigger, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
         
         #If there is a noteworthy measurement and the program is not paused due to recent event
         if triggered and now - last_event_time > settings['event_sep']:
@@ -114,13 +115,18 @@ try:
             #If required trigger count reached, resent event window and add event to db
             start_time = -1
             trigger_count = 0
-            last_event_time = now
-            count = insert_box_use_event(conn)
-            if count >= settings['event_count']:
-                msg_detect_time = now
-                logging.info('Message scheduled for %d', 
-                    date_util.fromtimestamp(msg_detect_time + settings['privacy_delay']).strftime('%Y-%m-%d %H:%M:%S'))
-                
+
+            clean_time = get_recent_clean(conn)[2].timestamp()
+            if now - clean_time > settings['clean_pause']:
+                last_event_time = now
+                count = insert_box_use_event(conn)
+                if count >= settings['event_count']:
+                    msg_detect_time = now
+                    logging.info('Message scheduled for %s', 
+                        date_util.fromtimestamp(msg_detect_time + settings['privacy_delay']).strftime('%Y-%m-%d %H:%M:%S'))
+            else:
+                logging.info('Box use event suppressed by cleaning')
+
         if msg_detect_time != -1 and now - msg_detect_time > settings['privacy_delay']:
             #final step - sending text after privacy delay
             msg_detect_time = -1

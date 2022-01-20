@@ -1,4 +1,4 @@
-test_mode = False
+test_mode = True
 
 import json
 import requests
@@ -72,6 +72,6 @@ def sms_reply():
 
 if __name__ == "__main__":
     if test_mode:
-        print(stats())
+        box_cleaned()
     else:
         app.run(host='192.168.1.64', port=5000, debug=False)
