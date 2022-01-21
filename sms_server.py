@@ -64,6 +64,10 @@ def update_name(name):
     update_cat_name(conn, name)
     conn.close()
 
+    resp = MessagingResponse()
+    resp.message('Cat name set to ' + name)
+    return str(resp)
+
 @app.route('/uploads/<filename>', methods=['GET'])
 def uploaded_file(filename):
     return send_from_directory(IMAGE_FOLDER,
@@ -73,7 +77,7 @@ def uploaded_file(filename):
 def sms_reply():
     logging.info('SMS recieved at time %s', date_util.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
     body = request.values.get('Body', None)
-    if body.lower().startswith("name "): update_name(body[5:])
+    if body.lower().startswith("name "): return update_name(body[5:])
     elif 'stat' in body.lower(): return stats()
     elif 'ok' in body or 'clean' in body.lower(): return box_cleaned()
     else:
