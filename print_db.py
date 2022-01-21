@@ -2,10 +2,9 @@ import sqlite3
 
 conn = sqlite3.connect("litterbox.db")
 
-print('TABLE BOX_USE')
-for row in conn.execute('SELECT * FROM BOX_USE'):
-    print(row)
+tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
 
-print('TABLE CLEAN')
-for row in conn.execute('SELECT * FROM CLEAN'):
-    print(row)
+for table in tables:
+    print('TABLE ', table)
+    for row in conn.execute(f'SELECT * FROM {table[0]}'):
+        print(row)

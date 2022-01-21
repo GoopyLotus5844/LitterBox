@@ -58,6 +58,12 @@ def stats():
         'Avg uses each day: ' + str(avg_per_day))
     return str(resp)
 
+def update_name(name):
+    logging.info('Updating name to %s', name)
+    conn = connect_db()
+    update_cat_name(conn, name)
+    conn.close()
+
 @app.route('/uploads/<filename>', methods=['GET'])
 def uploaded_file(filename):
     return send_from_directory(IMAGE_FOLDER,
@@ -66,9 +72,14 @@ def uploaded_file(filename):
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
     logging.info('SMS recieved at time %s', date_util.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
-    body = request.values.get('Body', None).lower()
-    if 'stat' in body: return stats()
-    elif 'ok' in body or 'clean' in body: return box_cleaned()
+    body = request.values.get('Body', None)
+    if body.lower().startswith("name "): update_name(body[5:])
+    elif 'stat' in body.lower(): return stats()
+    elif 'ok' in body or 'clean' in body.lower(): return box_cleaned()
+    else:
+        resp = MessagingResponse()
+        resp.message('I don\'t understand')
+        return str(resp)
 
 if __name__ == "__main__":
     if test_mode:

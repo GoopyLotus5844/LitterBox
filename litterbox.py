@@ -23,11 +23,11 @@ conn = sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sq
 
 settings = json.load(open('detect_settings.json'))['test' if test_mode else 'normal']
 
-messages = ['Please clean the litter box',
-    'Clean ur litter box nerd!',
-    'Hurry up and clean the litter box please!',
-    'Litter box maximum threat level reached',
-    'Litter box maximum threat level exceeded']
+messages = ['Please clean {}\'s litter box',
+    'Clean ur litter box nerd! -{}',
+    'Hurry up and clean the litter box! {} needs help!',
+    'Litter box maximum threat level reached. {} is in dire danger.',
+    'Litter box maximum threat level exceeded. {} is in dire danger.']
  
 GPIO_TRIGGER = 18
 GPIO_ECHO = 24
@@ -55,21 +55,22 @@ def distance():
     return distance
 
 def send_text(count):
-    if count > len(messages) - 1: count = len(messages) - 1
-    now = date_util.now()
-
     if not test_mode:
-        dt_string = now.strftime("%d-%m-%Y-H:%M:%S")
+        if count > len(messages) - 1: count = len(messages) - 1
+        text = messages[count].format(get_user_config(conn)[0])
+
+        dt_string = date_util.now().strftime("%d-%m-%Y-H:%M:%S")
         camera = PiCamera()
         camera.capture("./images/" + dt_string + ".png")
         camera.close()
         
         message = client.messages.create(
-            body=messages[count],
+            body=text,
             media_url=['http://76.206.246.29:5843' + '/uploads/' + dt_string + '.png'],
             from_=keys['twilio_phone'],
             to=keys['send_phone']
         )
+    else: print(messages[count].format(get_user_config(conn)[0]))
     
 try:
     if not test_mode: setup_GPIO()

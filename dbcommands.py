@@ -8,6 +8,10 @@ def get_recent_clean(conn):
     select_query = 'SELECT * FROM CLEAN ORDER BY ID DESC LIMIT 1'
     return conn.execute(select_query).fetchone()
 
+def get_user_config(conn):
+    select_query = 'SELECT * FROM CONFIG LIMIT 1'
+    return conn.execute(select_query).fetchone()
+
 def get_avg_uses_before_clean(conn, sample):
     select_query = f'SELECT * FROM CLEAN ORDER BY ID DESC LIMIT {sample}'
     result = conn.execute(select_query)
@@ -59,3 +63,7 @@ def insert_box_use_event(conn):
     conn.commit()
     return count
     
+def update_cat_name(conn, name):
+    insert_query = 'UPDATE CONFIG SET name = ?'
+    conn.execute(insert_query, (name,))
+    conn.commit()

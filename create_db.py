@@ -2,24 +2,31 @@ import sqlite3
 from sqlite3 import Error
 import datetime
 
-def make_table(conn):
+def create_db(conn):
     conn.execute('''CREATE TABLE BOX_USE
-                 (ID INTEGER PRIMARY KEY,
-                  count INT NOT NULL,
-                  time TIMESTAMP NOT NULL)''')
-
-    conn.execute('''CREATE TABLE CLEAN
-                (ID INTEGER PRIMARY KEY,
-                count INT NOT NULL,
-                time TIMESTAMP NOT NULL)''')
-
-def starter_entry(conn):
+        (ID INTEGER PRIMARY KEY,
+        count INT NOT NULL,
+        time TIMESTAMP NOT NULL)''')
     insertQuery = 'INSERT INTO BOX_USE(count, time) VALUES (?,?)'
     conn.execute(insertQuery, (0, datetime.datetime.now()))
+    conn.execute('''CREATE TABLE CLEAN
+        (ID INTEGER PRIMARY KEY,
+        count INT NOT NULL,
+        time TIMESTAMP NOT NULL)''')
+    add_config_table(conn)
+
+def add_config_table(conn):
+    conn.execute('''CREATE TABLE CONFIG
+       (name TEXT NOT NULL)''')
+    insertQuery = 'INSERT INTO CONFIG(name) VALUES (?)'
+    conn.execute(insertQuery, ("Your Cat",))
 
 if __name__ == '__main__':
     conn = sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-    make_table(conn)
-    starter_entry(conn)
+    command = input()
+    if command == '0':
+        create_db(conn)
+    elif command == '1':
+        add_config_table(conn)
     conn.commit()
     conn.close()
