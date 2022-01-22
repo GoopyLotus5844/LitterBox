@@ -89,4 +89,5 @@ if __name__ == "__main__":
     if test_mode:
         print(stats())
     else:
-        app.run(host='192.168.1.64', port=5000, debug=False)
+        config = json.load(open('server_config.json'))
+        app.run(host=config['ip'], port=config['port'], debug=False)
