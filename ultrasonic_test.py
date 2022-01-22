@@ -26,6 +26,8 @@ def distance():
     distance = (TimeElapsed * 34300) / 2
     return distance
 
+setup_GPIO()
+
 while True:
     print(distance())
     input()
