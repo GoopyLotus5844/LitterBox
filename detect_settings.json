@@ -16,7 +16,7 @@
         "event_thresh": 2,
         "event_sep": 600,
         "event_count": 3,
-        "privacy_delay": 120,
+        "privacy_delay": 180,
         "clean_pause": 300
     }
 }
