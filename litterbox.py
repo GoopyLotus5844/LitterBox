@@ -54,12 +54,11 @@ def distance():
     distance = (TimeElapsed * 34300) / 2
     return distance
 
-def send_text(count):
+def send_text(count, dt_string):
     if not test_mode:
         if count > len(messages) - 1: count = len(messages) - 1
         text = messages[count].format(get_user_config(conn)[0])
 
-        dt_string = date_util.now().strftime("%d-%m-%Y-H:%M:%S")
         camera = PiCamera()
         camera.capture("./images/" + dt_string + ".png")
         camera.close()
@@ -78,6 +77,7 @@ try:
     start_time = -1
     last_event_time = get_recent_box_use(conn)[2].timestamp()
     msg_detect_time = -1
+    msg_decect_time_str = ''
 
     test_dist_trigger = False
     
@@ -117,12 +117,13 @@ try:
             start_time = -1
             trigger_count = 0
 
-            clean_time = get_recent_clean(conn)[2].timestamp()
-            if now - clean_time > settings['clean_pause']:
+            clean_time = get_recent_clean(conn)[2]
+            if now - clean_time.timestamp() > settings['clean_pause']:
                 last_event_time = now
-                count = insert_box_use_event(conn)
+                count = insert_box_use_event(conn, clean_time)
                 if count >= settings['event_count']:
                     msg_detect_time = now
+                    msg_detect_time_str = clean_time.isoformat("T", "seconds")
                     logging.info('Message scheduled for %s', 
                         date_util.fromtimestamp(msg_detect_time + settings['privacy_delay']).strftime('%Y-%m-%d %H:%M:%S'))
             else:

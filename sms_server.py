@@ -36,7 +36,7 @@ class CustomJSONEncoder(JSONEncoder):
     def default(self, obj):
         try:
             if isinstance(obj, date):
-                return obj.isoformat()
+                return obj.isoformat("T", "seconds")
             iterable = iter(obj)
         except TypeError:
             pass

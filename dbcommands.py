@@ -60,11 +60,11 @@ def insert_clean_event(conn):
     conn.commit()
     return count
     
-def insert_box_use_event(conn):
+def insert_box_use_event(conn, time):
     recent = get_recent_box_use(conn)
     count = recent[1] + 1
     insert_query = 'INSERT INTO BOX_USE(count, time) VALUES (?,?)'
-    conn.execute(insert_query, (count, datetime.datetime.now()))
+    conn.execute(insert_query, (count, time))
     conn.commit()
     return count
     
