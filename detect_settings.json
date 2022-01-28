@@ -14,9 +14,9 @@
         "distance_thresh": 50,
         "event_length": 60,
         "event_thresh": 2,
-        "event_sep": 600,
-        "event_count": 3,
+        "event_sep": 60,
+        "event_count": 1,
         "privacy_delay": 180,
-        "clean_pause": 300
+        "clean_pause": 30
     }
 }
