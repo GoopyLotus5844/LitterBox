@@ -76,10 +76,17 @@ def stats():
     avg_per_day = round(get_avg_daily_uses(conn, 100), 2)
     conn.close()
 
+    stats_dict = {'uses_since_clean': uses_since_clean,
+        'avg_per_clean': avg_per_clean,
+        'avg_per_day': avg_per_day}
+    return stats_dict
+
+def sms_stats():
+    stats_dict = stats()
     resp = MessagingResponse()
-    resp.message('Uses since cleaned: ' + str(uses_since_clean) + "\n" +
-        'Avg uses before cleaning: ' + str(avg_per_clean) + "\n" +
-        'Avg uses each day: ' + str(avg_per_day))
+    resp.message('Uses since cleaned: ' + str(stats_dict['uses_since_clean']) + "\n" +
+        'Avg uses before cleaning: ' + str(stats_dict['avg_per_clean']) + "\n" +
+        'Avg uses each day: ' + str(stats_dict['avg_per_day']))
     return str(resp)
 
 def update_name(name):
@@ -91,6 +98,10 @@ def update_name(name):
     resp = MessagingResponse()
     resp.message('Cat name set to ' + name)
     return str(resp)
+
+@app.route('/stats', methods=['GET'])
+def get_stats():
+    return jsonify(stats())
 
 @app.route('/uploads/<filename>', methods=['GET'])
 def uploaded_file(filename):
@@ -115,7 +126,7 @@ def sms_reply():
     logging.info('SMS recieved at time %s', date_util.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
     body = request.values.get('Body', None)
     if body.lower().startswith("name "): return update_name(body[5:])
-    elif 'stat' in body.lower(): return stats()
+    elif 'stat' in body.lower(): return sms_stats()
     elif 'ok' in body or 'clean' in body.lower(): return box_cleaned()
     else:
         resp = MessagingResponse()
@@ -127,5 +138,5 @@ if __name__ == "__main__":
         print(stats())
     else:
         config = json.load(open('server_config.json'))
-        app.run(host=config['ip'], port=config['port'], debug=False)
-        #app.run(port=5000, debug=False)
+        #app.run(host=config['ip'], port=config['port'], debug=False)
+        app.run(port=5000, debug=False)
