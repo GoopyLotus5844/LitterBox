@@ -6,7 +6,7 @@ def get_recent_box_use(conn):
     return conn.execute(select_query).fetchone()
 
 def get_recent_box_uses(conn, limit):
-    select_query = 'SELECT * FROM BOX_USE ORDER BY ID DESC LIMIT {}'.format(limit)
+    select_query = 'SELECT COUNT, TIME FROM BOX_USE ORDER BY ID DESC LIMIT {}'.format(limit)
     return conn.execute(select_query).fetchall()
 
 def get_recent_clean(conn):

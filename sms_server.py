@@ -36,6 +36,13 @@ app.config
 def connect_db():
     return sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 
+#for converting sqlite response to dictionary, which is then converted to json
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
 def box_cleaned():
     conn = connect_db()
     count = insert_clean_event(conn)
@@ -84,6 +91,7 @@ def app_token_update():
 @app.route('/recent-events', methods=['GET'])
 def get_recent_events():
     conn = connect_db()
+    conn.row_factory = dict_factory
     events = get_recent_box_uses(conn, 10)
     return jsonify(events)
 
@@ -104,4 +112,5 @@ if __name__ == "__main__":
         print(stats())
     else:
         config = json.load(open('server_config.json'))
-        app.run(port=5000, debug=False)
+        app.run(host=config['ip'], port=config['port'], debug=False)
+        #app.run(port=5000, debug=False)
