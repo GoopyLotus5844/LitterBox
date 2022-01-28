@@ -73,6 +73,11 @@ def uploaded_file(filename):
     return send_from_directory(IMAGE_FOLDER,
                                filename)
 
+@app.route('/update-app-token', methods='POST')
+def app_token_update():
+    token = request.args.get('token')
+    print(token)
+
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
     logging.info('SMS recieved at time %s', date_util.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
