@@ -1,8 +1,13 @@
 import datetime
+from select import select
 
 def get_recent_box_use(conn):
     select_query = 'SELECT * FROM BOX_USE ORDER BY ID DESC LIMIT 1'
     return conn.execute(select_query).fetchone()
+
+def get_recent_box_uses(conn, limit):
+    select_query = 'SELECT * FROM BOX_USE ORDER BY ID DESC LIMIT {}'.format(limit)
+    return conn.execute(select_query).fetchall()
 
 def get_recent_clean(conn):
     select_query = 'SELECT * FROM CLEAN ORDER BY ID DESC LIMIT 1'

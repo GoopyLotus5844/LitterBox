@@ -4,6 +4,8 @@ import json
 import requests
 import sqlite3
 from flask import Flask
+from flask import Response
+from flask import jsonify
 import time
 from datetime import datetime as date_util
 import logging
@@ -77,6 +79,13 @@ def uploaded_file(filename):
 def app_token_update():
     token = request.args.get('token')
     print(token)
+    return Response(status=200)
+
+@app.route('/recent-events', methods=['GET'])
+def get_recent_events():
+    conn = connect_db()
+    events = get_recent_box_uses(conn, 10)
+    return jsonify(events)
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
@@ -95,4 +104,4 @@ if __name__ == "__main__":
         print(stats())
     else:
         config = json.load(open('server_config.json'))
-        app.run(host=config['ip'], port=config['port'], debug=False)
+        app.run(port=5000, debug=False)
