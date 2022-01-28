@@ -9,8 +9,10 @@ from flask import jsonify
 import time
 from datetime import datetime as date_util
 import logging
+from datetime import date
 from flask import request
 from flask import send_from_directory
+from flask.json import JSONEncoder
 from dbcommands import *
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
@@ -30,8 +32,21 @@ clean_messages = ['OK don\'t remember asking',
     'Thanks, you\'re a horrible pet owner', 
     'What is wrong with you?']
 
+class CustomJSONEncoder(JSONEncoder):
+    def default(self, obj):
+        try:
+            if isinstance(obj, date):
+                return obj.isoformat()
+            iterable = iter(obj)
+        except TypeError:
+            pass
+        else:
+            return list(iterable)
+        return JSONEncoder.default(self, obj)
+
 app = Flask(__name__)
 app.config
+app.json_encoder = CustomJSONEncoder
 
 def connect_db():
     return sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
