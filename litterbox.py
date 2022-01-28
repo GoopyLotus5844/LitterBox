@@ -117,15 +117,16 @@ try:
             start_time = -1
             trigger_count = 0
 
-            clean_time = get_recent_clean(conn)[2]
-            if now - clean_time.timestamp() > settings['clean_pause']:
+            clean_time = get_recent_clean(conn)[2].timestamp()
+            
+            if now - clean_time > settings['clean_pause']:
                 last_event_time = now
-                count = insert_box_use_event(conn, clean_time)
+                current_datetime = date_util.now()
+                count = insert_box_use_event(conn, current_datetime)
                 if count >= settings['event_count']:
                     msg_detect_time = now
-                    msg_detect_time_str = clean_time.isoformat("T", "seconds")
-                    logging.info('Message scheduled for %s', 
-                        date_util.fromtimestamp(msg_detect_time + settings['privacy_delay']).strftime('%Y-%m-%d %H:%M:%S'))
+                    msg_detect_time_str = current_datetime.isoformat("T", "seconds")
+                    logging.info('Message scheduled for %s', msg_detect_time_str)
             else:
                 logging.info('Box use event suppressed by cleaning')
 
@@ -134,7 +135,7 @@ try:
             msg_detect_time = -1
             count = get_recent_box_use(conn)[1] - settings['event_count']
             logging.info('Sending message for severity %d', count)
-            send_text(count)
+            send_text(count, msg_detect_time_str)
         
         if not test_mode:
             time.sleep(1)

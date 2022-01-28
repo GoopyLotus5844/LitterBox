@@ -107,7 +107,7 @@ def app_token_update():
 def get_recent_events():
     conn = connect_db()
     conn.row_factory = dict_factory
-    events = get_recent_box_uses(conn, 10)
+    events = get_recent_box_uses(conn, 40)
     return jsonify(events)
 
 @app.route("/sms", methods=['GET', 'POST'])
