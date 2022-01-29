@@ -99,6 +99,20 @@ def update_name(name):
     resp.message('Cat name set to ' + name)
     return str(resp)
 
+@app.route('/set-user-settings', methods=['POST'])
+def set_user_settings():
+    conn = connect_db()
+    args = request.args
+    update_config_settings(conn, args.get('name'), args.get('range'), args.get('reminder'), args.get('cleanPause'))
+    return Response(status=200)
+
+@app.route('/get-user-settings', methods=['GET'])
+def get_user_settings():
+    conn = connect_db()
+    conn.row_factory = dict_factory
+    settings = get_user_config(conn)
+    return jsonify(settings)
+
 @app.route('/stats', methods=['GET'])
 def get_stats():
     return jsonify(stats())
@@ -138,5 +152,5 @@ if __name__ == "__main__":
         print(stats())
     else:
         config = json.load(open('server_config.json'))
-        #app.run(host=config['ip'], port=config['port'], debug=False)
-        app.run(port=5000, debug=False)
+        app.run(host=config['ip'], port=config['port'], debug=False)
+        #app.run(port=5000, debug=False)
