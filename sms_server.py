@@ -156,5 +156,5 @@ if __name__ == "__main__":
         print(stats())
     else:
         config = json.load(open('server_config.json'))
-        #app.run(host=config['ip'], port=config['port'], debug=False)
-        app.run(port=5000, debug=False)
+        app.run(host=config['ip'], port=config['port'], debug=False)
+        #app.run(port=5000, debug=False)
