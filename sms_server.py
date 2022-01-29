@@ -102,7 +102,7 @@ def update_name(name):
 @app.route('/set-user-settings', methods=['POST'])
 def set_user_settings():
     args = request.args
-    logging.info('Updating user settings %s, %s, %s, %s', args.get('name'), args.get('range'), args.get('reminder'), args.get('cleanPause'))
+    print(args)
     conn = connect_db()
     update_config_settings(conn, args.get('name'), args.get('range'), args.get('reminder'), args.get('cleanPause'))
     conn.close()
