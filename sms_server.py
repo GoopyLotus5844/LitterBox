@@ -103,6 +103,7 @@ def update_name(name):
 def set_user_settings():
     args = request.args
     print(request.headers)
+    print(request)
     print(args)
     conn = connect_db()
     update_config_settings(conn, args.get('name'), args.get('range'), args.get('reminder'), args.get('cleanPause'))
