@@ -104,6 +104,7 @@ def set_user_settings():
     conn = connect_db()
     args = request.args
     update_config_settings(conn, args.get('name'), args.get('range'), args.get('reminder'), args.get('cleanPause'))
+    conn.close()
     return Response(status=200)
 
 @app.route('/get-user-settings', methods=['GET'])
@@ -111,6 +112,7 @@ def get_user_settings():
     conn = connect_db()
     conn.row_factory = dict_factory
     settings = get_user_config(conn)
+    conn.close()
     return jsonify(settings)
 
 @app.route('/stats', methods=['GET'])
@@ -133,6 +135,7 @@ def get_recent_events():
     conn = connect_db()
     conn.row_factory = dict_factory
     events = get_recent_box_uses(conn, 40)
+    conn.close()
     return jsonify(events)
 
 @app.route("/sms", methods=['GET', 'POST'])
