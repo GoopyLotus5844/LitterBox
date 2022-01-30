@@ -79,6 +79,9 @@ try:
     msg_detect_time = -1
     msg_decect_time_str = ''
 
+    #[cat name, range, uses before remdinder, cleaning pause length]
+    user_settings = get_user_config(conn)
+
     test_dist_trigger = False
     
     while True:
@@ -86,7 +89,7 @@ try:
         
         if not test_mode:
             dist = distance()
-            triggered = dist <= settings['distance_thresh']
+            triggered = dist <= user_settings[1]
         else: 
             triggered = test_dist_trigger
             print(test_dist_trigger, 'trigcount', trigger_count, 'winstart', start_time, 'lastevent', last_event_time, 'msgtime', msg_detect_time, 'now', now)
@@ -97,6 +100,9 @@ try:
                 #If the event window is not active
                 start_time = now
                 trigger_count += 1
+                #update settings when a new event window is started (not perfect, but bad idea to load settings once per second)
+                #the first sensor measurement after changing the detect range will still use the old range
+                user_settings = get_user_config(conn)
             else:
                 #If the event window is active
                 elapsed = now - start_time
@@ -119,11 +125,11 @@ try:
 
             clean_time = get_recent_clean(conn)[2].timestamp()
             
-            if now - clean_time > settings['clean_pause']:
+            if now - clean_time > user_settings[3]:
                 last_event_time = now
                 current_datetime = date_util.now()
                 count = insert_box_use_event(conn, current_datetime)
-                if count >= settings['event_count']:
+                if count >= user_settings[2]:
                     msg_detect_time = now
                     msg_detect_time_str = current_datetime.isoformat("T", "seconds")
                     logging.info('Message scheduled for %s', msg_detect_time_str)
@@ -133,7 +139,7 @@ try:
         if msg_detect_time != -1 and now - msg_detect_time > settings['privacy_delay']:
             #final step - sending text after privacy delay
             msg_detect_time = -1
-            count = get_recent_box_use(conn)[1] - settings['event_count']
+            count = get_recent_box_use(conn)[1] - user_settings[2]
             logging.info('Sending message for severity %d', count)
             send_text(count, msg_detect_time_str)
         

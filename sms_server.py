@@ -37,7 +37,6 @@ class CustomJSONEncoder(JSONEncoder):
     def default(self, obj):
         try:
             if isinstance(obj, date):
-                obj = obj.replace(tzinfo=date_util.now(datetime.timezone.utc).astimezone().tzinfo)
                 return obj.isoformat("T", "seconds")
             iterable = iter(obj)
         except TypeError:
