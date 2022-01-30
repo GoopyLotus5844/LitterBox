@@ -29,9 +29,10 @@ def new_config_table(conn):
         (name TEXT NOT NULL,
         range INTEGER NOT NULL,
         reminder INTEGER NOT NULL,
-        cleanPause INTEGER NOT NULL)''')
-    insertQuery = 'INSERT INTO CONFIG(name, range, reminder, cleanPause) VALUES (?, ?, ?, ?)'
-    conn.execute(insertQuery, ("Your Cat", 50, 3, 300))
+        cleanPause INTEGER NOT NULL,
+        phone TEXT NOT NULL)''')
+    insertQuery = 'INSERT INTO CONFIG(name, range, reminder, cleanPause, phone) VALUES (?, ?, ?, ?, ?)'
+    conn.execute(insertQuery, ("Cool cat", 57, 2, 200, '+13128565501'))
 
 if __name__ == '__main__':
     conn = sqlite3.connect('litterbox.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)

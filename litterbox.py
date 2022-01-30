@@ -57,7 +57,8 @@ def distance():
 def send_text(count, dt_string):
     if not test_mode:
         if count > len(messages) - 1: count = len(messages) - 1
-        text = messages[count].format(get_user_config(conn)[0])
+        user_settings = get_user_config(conn)
+        text = messages[count].format(user_settings[0])
 
         camera = PiCamera()
         camera.capture("./images/" + dt_string + ".png")
@@ -66,7 +67,7 @@ def send_text(count, dt_string):
         message = client.messages.create(
             body=text,
             media_url=['http://76.206.246.29:5843' + '/uploads/' + dt_string + '.png'],
-            from_=keys['twilio_phone'],
+            from_=user_settings[4],
             to=keys['send_phone']
         )
     else: print(messages[count].format(get_user_config(conn)[0]))

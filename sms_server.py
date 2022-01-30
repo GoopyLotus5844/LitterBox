@@ -111,7 +111,7 @@ def box_cleaned():
 def set_user_settings():
     params = request.form
     conn = connect_db()
-    update_config_settings(conn, params.get('name'), params.get('range'), params.get('reminder'), params.get('cleanPause'))
+    update_config_settings(conn, params.get('name'), params.get('range'), params.get('reminder'), params.get('cleanPause'), params.get('phone'))
     conn.close()
     return Response(status=200)
 

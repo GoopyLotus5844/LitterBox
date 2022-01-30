@@ -73,7 +73,7 @@ def update_cat_name(conn, name):
     conn.execute(insert_query, (name,))
     conn.commit()
 
-def update_config_settings(conn, name, range, reminder, cleanPause):
-    insert_query = 'UPDATE CONFIG SET name = ?, range = ?, reminder = ?, cleanPause = ?'
-    conn.execute(insert_query, (name, range, reminder, cleanPause))
+def update_config_settings(conn, name, range, reminder, cleanPause, phone):
+    insert_query = 'UPDATE CONFIG SET name = ?, range = ?, reminder = ?, cleanPause = ?, phone = ?'
+    conn.execute(insert_query, (name, range, reminder, cleanPause, phone))
     conn.commit()
