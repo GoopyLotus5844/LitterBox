@@ -67,8 +67,8 @@ def send_text(count, dt_string):
         message = client.messages.create(
             body=text,
             media_url=['http://76.206.246.29:5843' + '/uploads/' + dt_string + '.png'],
-            from_=user_settings[4],
-            to=keys['send_phone']
+            from_=keys['twilio_phone'],
+            to=user_settings[4]
         )
     else: print(messages[count].format(get_user_config(conn)[0]))
     
