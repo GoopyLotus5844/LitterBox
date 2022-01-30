@@ -101,14 +101,9 @@ def update_name(name):
 
 @app.route('/set-user-settings', methods=['POST'])
 def set_user_settings():
-    args = request.args
-    print(request.json)
-    print(request.form)
-    print(request.headers)
-    print(request)
-    print(args)
+    params = request.form
     conn = connect_db()
-    update_config_settings(conn, args.get('name'), args.get('range'), args.get('reminder'), args.get('cleanPause'))
+    update_config_settings(conn, params.get('name'), params.get('range'), params.get('reminder'), params.get('cleanPause'))
     conn.close()
     return Response(status=200)
 
@@ -160,5 +155,5 @@ if __name__ == "__main__":
         print(stats())
     else:
         config = json.load(open('server_config.json'))
-        app.run(host=config['ip'], port=config['port'], debug=False)
-        #app.run(port=5000, debug=False)
+        #app.run(host=config['ip'], port=config['port'], debug=False)
+        app.run(port=5000, debug=False)
