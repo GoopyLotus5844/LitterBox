@@ -103,6 +103,7 @@ def update_name(name):
 def set_user_settings():
     args = request.args
     print(request.json)
+    print(request.form)
     print(request.headers)
     print(request)
     print(args)
