@@ -102,6 +102,7 @@ def update_name(name):
 @app.route('/set-user-settings', methods=['POST'])
 def set_user_settings():
     args = request.args
+    print(request.json)
     print(request.headers)
     print(request)
     print(args)
