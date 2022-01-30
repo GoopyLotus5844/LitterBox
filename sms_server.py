@@ -99,6 +99,13 @@ def update_name(name):
     resp.message('Cat name set to ' + name)
     return str(resp)
 
+@app.route('/clean', methods=['GET', 'POST'])
+def box_cleaned():
+    conn = connect_db()
+    insert_clean_event(conn)
+    conn.close()
+    return Response(status=200)
+
 @app.route('/set-user-settings', methods=['POST'])
 def set_user_settings():
     params = request.form
@@ -155,5 +162,5 @@ if __name__ == "__main__":
         print(stats())
     else:
         config = json.load(open('server_config.json'))
-        #app.run(host=config['ip'], port=config['port'], debug=False)
-        app.run(port=5000, debug=False)
+        app.run(host=config['ip'], port=config['port'], debug=False)
+        #app.run(port=5000, debug=False)
