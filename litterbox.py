@@ -54,15 +54,17 @@ def distance():
     distance = (TimeElapsed * 34300) / 2
     return distance
 
+def take_picture(dt_string):
+    if not test_mode:
+        camera = PiCamera()
+        camera.capture("./images/" + dt_string + ".png")
+        camera.close()
+
 def send_text(count, dt_string):
     if not test_mode:
         if count > len(messages) - 1: count = len(messages) - 1
         user_settings = get_user_config(conn)
         text = messages[count].format(user_settings[0])
-
-        camera = PiCamera()
-        camera.capture("./images/" + dt_string + ".png")
-        camera.close()
         
         message = client.messages.create(
             body=text,
@@ -79,6 +81,7 @@ try:
     last_event_time = get_recent_box_use(conn)[2].timestamp()
     msg_detect_time = -1
     msg_decect_time_str = ''
+    should_send_message = False
 
     #[cat name, range, uses before remdinder, cleaning pause length]
     user_settings = get_user_config(conn)
@@ -130,19 +133,28 @@ try:
                 last_event_time = now
                 current_datetime = date_util.now()
                 count = insert_box_use_event(conn, current_datetime)
+
+                msg_detect_time = now
+                msg_detect_time_str = current_datetime.isoformat("T", "seconds")
                 if count >= user_settings[2]:
-                    msg_detect_time = now
-                    msg_detect_time_str = current_datetime.isoformat("T", "seconds")
                     logging.info('Message scheduled for %s', msg_detect_time_str)
+                    should_send_message = True
+                else:
+                    logging.info('Image capture schedule for %s', msg_detect_time_str)
+                    should_send_message = False
             else:
                 logging.info('Box use event suppressed by cleaning')
 
         if msg_detect_time != -1 and now - msg_detect_time > settings['privacy_delay']:
-            #final step - sending text after privacy delay
+            #final step - taking image or sending text after privacy delay
             msg_detect_time = -1
-            count = get_recent_box_use(conn)[1] - user_settings[2]
-            logging.info('Sending message for severity %d', count)
-            send_text(count, msg_detect_time_str)
+            take_picture(msg_detect_time_str)
+            if should_send_message:
+                logging.info('Sending message for severity %d', count)
+                count = get_recent_box_use(conn)[1] - user_settings[2]
+                send_text(count, msg_detect_time_str)
+            else:
+                logging.info('Image taken')
         
         if not test_mode:
             time.sleep(1)
